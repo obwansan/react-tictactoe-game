@@ -14,19 +14,24 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      squares: Array(9).fill(null)
+      squares: Array(9).fill(null),
+      xIsNext: true,
     }
   }
 
   handleClick(i) {
     // Get a copy of all the squares (their values)
     const squares = this.state.squares.slice();
-    // Set the value of the clicked square to 'X'
-    squares[i] = 'X';
+    // Set the value of the clicked square to X if xIsNext is true
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
     // Update values of squares stored in state.
-    // Changing state will cause the Board component to rerender
-    this.setState({squares: squares});
+    // Toggle boolean value of xIsNext
+    this.setState({
+      squares: squares,
+      xIsNext: !this.state.xIsNext,
+    });
   }
+
   // value is null for all squares initially (because 9 null values in the
   // squares array on state object)
   renderSquare(i) {
@@ -39,7 +44,7 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    const status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 
     return (
       <div>
