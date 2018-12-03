@@ -22,10 +22,19 @@ class Board extends React.Component {
   handleClick(i) {
     // Get a copy of all the squares (their values)
     const squares = this.state.squares.slice();
-    // Set the value of the clicked square to X if xIsNext is true
+    // If calculateWinner returns a value (X or O, not null), i.e. if someone has won,
+    // or the clicked square has a value, don't do anything.
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    // If there's no winner and the square is empty, set the value of the
+    // clicked square to X if xIsNext is true, or O if it's not.
     squares[i] = this.state.xIsNext ? 'X' : 'O';
+
     // Update values of squares stored in state.
-    // Toggle boolean value of xIsNext
+    // Toggle boolean value of xIsNext so that the next time handleClick() is
+    // called the square will be assigned a O if the previous go was an X and
+    // vica versa.
     this.setState({
       squares: squares,
       xIsNext: !this.state.xIsNext,
@@ -44,7 +53,13 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    const winner = calculateWinner(this.state.squares);
+    let status;
+    if (winner) {
+      status = 'Winner: ' + winner;
+    } else {
+      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    }
 
     return (
       <div>
@@ -91,3 +106,25 @@ ReactDOM.render(
   <Game />,
   document.getElementById('root')
 );
+
+// squares is the array of Xs and Os comprising the board at any given time
+function calculateWinner(squares) {
+  // Horizontal, vertical and diagonal winning lines
+  const lines =[
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
