@@ -11,59 +11,19 @@ function Square(props) {
 }
 
 class Board extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      squares: Array(9).fill(null),
-      xIsNext: true,
-    }
-  }
 
-  handleClick(i) {
-    // Get a copy of all the squares (their values)
-    const squares = this.state.squares.slice();
-    // If calculateWinner returns a value (X or O, not null), i.e. if someone has won,
-    // or the clicked square has a value, don't do anything.
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
-    // If there's no winner and the square is empty, set the value of the
-    // clicked square to X if xIsNext is true, or O if it's not.
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
-
-    // Update values of squares stored in state.
-    // Toggle boolean value of xIsNext so that the next time handleClick() is
-    // called the square will be assigned a O if the previous go was an X and
-    // vica versa.
-    this.setState({
-      squares: squares,
-      xIsNext: !this.state.xIsNext,
-    });
-  }
-
-  // value is null for all squares initially (because 9 null values in the
-  // squares array on state object)
   renderSquare(i) {
     return (
       <Square
-        value={this.state.squares[i]}
-        onClick={() => this.handleClick(i)}
+        value={this.props.squares[i]}
+        onClick={() => this.props.onClick(i)}
       />
     );
   }
 
   render() {
-    const winner = calculateWinner(this.state.squares);
-    let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
-    } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-    }
-
     return (
       <div>
-        <div className="status">{status}</div>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
@@ -85,14 +45,68 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      history: [{
+        squares: Array(9).fill(null),
+      }],
+      xIsNext: true,
+    };
+  }
+
+  handleClick(i) {
+    // Get all the played board states
+    const history = this.state.history;
+    // Get the current board state (an object containing a property holding the current board array)
+    const current = history[history.length - 1];
+    // Get a copy of the current board array
+    const squares = current.squares.slice();
+
+    // If calculateWinner returns a value (X or O, not null), i.e. if someone has won,
+    // or the clicked square has a value, don't do anything.
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+    // Add the current board state (array as a property on an object) to the history array
+    // Toggle boolean value of xIsNext so that the next time handleClick() is
+    // called the square will be assigned a O if the previous go was an X and
+    // vica versa.
+    this.setState({
+      history: history.concat([{
+        squares: squares,
+      }]),
+      xIsNext: !this.state.xIsNext,
+    });
+  }
+
   render() {
+    // Get all the played board states
+    const history = this.state.history;
+    // Get the current board state (an object containing a property holding the current board array)
+    const current = history[history.length - 1];
+    // See if someone's won (pass the current board array)
+    const winner = calculateWinner(current.squares);
+
+    let status;
+    if (winner) {
+      status = 'Winner: ' + winner;
+    } else {
+      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    }
+
     return (
       <div className="game">
         <div className="game-board">
-          <Board />
+          <Board
+            squares={current.squares}
+            onClick={(i) => this.handleClick(i)}
+          />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
+          <div>{status}</div>
           <ol>{/* TODO */}</ol>
         </div>
       </div>
