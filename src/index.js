@@ -51,13 +51,15 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null),
       }],
+      stepNumber: 0,
       xIsNext: true,
     };
   }
 
   handleClick(i) {
-    // Get all the played board states
-    const history = this.state.history;
+    // Get a COPY of all the played board states from the first to the current stepNumber.
+    // Why plus 1 though? SHouldn't it be minus 1 to get the index number from history.length?
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
     // Get the current board state (an object containing a property holding the current board array)
     const current = history[history.length - 1];
     // Get a copy of the current board array
@@ -78,17 +80,43 @@ class Game extends React.Component {
       history: history.concat([{
         squares: squares,
       }]),
+      stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
+    });
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step % 2) === 0,
     });
   }
 
   render() {
     // Get all the played board states
     const history = this.state.history;
-    // Get the current board state (an object containing a property holding the current board array)
-    const current = history[history.length - 1];
+    // Get the board state (an object containing a property holding the
+    // current board array) of the currently selected move.
+    const current = history[this.state.stepNumber];
     // See if someone's won (pass the current board array)
     const winner = calculateWinner(current.squares);
+
+    // map over history (an array of objects containing arrays)
+    // I think step is the 'current element being processed in the array' i.e.
+    // the object containing the array of moves. move is 'the index of the current
+    // element being processed in the array'. On the first iteration there's no
+    // move yet so 'Go to game start' is rendered. This has index 0, so 'Go to move #'
+    // always starts from 1.
+    const moves = history.map((step, move) => {
+      const desc = move ?
+        'Go to move #' + move :
+        'Go to game start';
+      return (
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      );
+    });
 
     let status;
     if (winner) {
@@ -107,7 +135,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{moves}</ol>
         </div>
       </div>
     );
